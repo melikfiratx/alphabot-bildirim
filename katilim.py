@@ -48,7 +48,7 @@ def mesaj_at(metin):
 
 # ---------------- Alphabot ----------------
 def kayit_ol(api_key, slug):
-    """(basarili_mi, kisa_aciklama) dondurur."""
+    """(durum, aciklama) dondurur. durum: 'ok' | 'zaten' | 'hata'"""
     req = urllib.request.Request(
         "https://api.alphabot.app/v1/register",
         data=json.dumps({"slug": slug}).encode(),
@@ -73,11 +73,14 @@ def kayit_ol(api_key, slug):
                 hata = json.load(e)
             except Exception:
                 hata = {}
-            return False, kisalt(hata_metni(hata) or f"HTTP {e.code}")
+            print(f"[{slug}] HTTP {e.code}:", json.dumps(hata)[:600])
+            if e.code == 401:
+                return "hata", "API anahtarı geçersiz"
+            return siniflandir(hata_metni(hata) or f"HTTP {e.code}")
         except Exception as e:  # ag hatasi vs.
-            return False, kisalt(str(e))
+            return "hata", "Bağlantı hatası: " + kisalt(str(e), 80)
     else:
-        return False, "Rate limit (429)"
+        return "hata", "Limit aşıldı, sonra tekrar dene"
 
     print(f"[{slug}] cevap:", json.dumps(cevap)[:600])
     data = cevap.get("data") or {}
@@ -85,8 +88,31 @@ def kayit_ol(api_key, slug):
     val = data.get("validation")
     gecersiz = isinstance(val, dict) and (val.get("valid") is False or val.get("success") is False)
     if cevap.get("success") and not gecersiz:
-        return True, kisalt(sonuc)
-    return False, kisalt(sonuc or hata_metni(cevap) or "Bilinmeyen hata")
+        return "ok", ""
+    return siniflandir(sonuc or hata_metni(cevap) or "Bilinmeyen hata")
+
+
+CEVIRI = [
+    ("already entered", "zaten", "Zaten katılmışsın"),
+    ("task", "hata", "Görev eksik"),
+    ("requirement", "hata", "Şart eksik"),
+    ("has ended", "hata", "Çekiliş bitmiş"),
+    ("ended", "hata", "Çekiliş bitmiş"),
+    ("not started", "hata", "Çekiliş henüz başlamadı"),
+    ("not found", "hata", "Çekiliş bulunamadı (link hatalı olabilir)"),
+    ("wallet", "hata", "Cüzdan sorunu"),
+    ("role", "hata", "Discord rolü yok"),
+    ("discord", "hata", "Discord şartı eksik"),
+    ("twitter", "hata", "X görevi eksik"),
+]
+
+
+def siniflandir(metin):
+    kucuk = str(metin).lower()
+    for anahtar, durum, tr in CEVIRI:
+        if anahtar in kucuk:
+            return durum, tr
+    return "hata", kisalt(metin)
 
 
 def hata_metni(obj):
@@ -143,21 +169,30 @@ def main():
             time.sleep(BEKLEME_SN)
 
     # Rapor
-    toplam = sum(1 for s in sluglar for ad, _ in aktif if sonuclar[s][ad][0])
-    satirlar = [f"✅ Bitti: {toplam}/{len(sluglar) * len(aktif)} katılım başarılı", ""]
-    notlar = []
+    IKON = {"ok": "✅", "zaten": "☑️", "hata": "⚠️"}
+    sayac = {"ok": 0, "zaten": 0, "hata": 0}
+    satirlar, sorunlar = [], []
     for s in sluglar:
-        ikonlar = "  ".join(f"{ad} {'✅' if sonuclar[s][ad][0] else '⚠️'}" for ad, _ in aktif)
-        satirlar.append(f"• {s}\n   {ikonlar}")
         for ad, _ in aktif:
-            ok, aciklama = sonuclar[s][ad]
-            if not ok:
-                notlar.append(f"⚠️ {ad} – {s}: {aciklama}")
-    if notlar:
-        satirlar += ["", "Atlananlar / hatalar:"] + notlar
+            sayac[sonuclar[s][ad][0]] += 1
+        satirlar.append(f"• {s}\n   " + "  ".join(f"{ad} {IKON[sonuclar[s][ad][0]]}" for ad, _ in aktif))
+        # ayni sebebi tek satirda topla
+        gruplar = {}
+        for ad, _ in aktif:
+            durum, aciklama = sonuclar[s][ad]
+            if durum == "hata":
+                gruplar.setdefault(aciklama, []).append(ad)
+        for aciklama, hesaplar in gruplar.items():
+            sorunlar.append(f"⚠️ {aciklama} ({', '.join(hesaplar)})\n   https://www.alphabot.app/{s}")
+
+    ust = f"✅ {sayac['ok']} yeni katılım   ☑️ {sayac['zaten']} zaten katılmış   ⚠️ {sayac['hata']} sorun"
+    mesaj = [ust, ""] + satirlar
+    if sorunlar:
+        mesaj += ["", "Sorunlu olanlar:"] + sorunlar
     if eksik:
-        satirlar += ["", "Anahtarı olmadığı için atlanan hesaplar: " + ", ".join(eksik)]
-    mesaj_at("\n".join(satirlar))
+        mesaj += ["", "Anahtarı olmadığı için atlanan hesaplar: " + ", ".join(eksik)]
+    mesaj += ["", "✅ katıldı · ☑️ zaten katılmıştın · ⚠️ sorun var"]
+    mesaj_at("\n".join(mesaj))
 
     # Mesajlari islenmis olarak isaretle (tekrar islenmesin)
     tg("getUpdates", {"offset": son_id + 1, "timeout": 0})
