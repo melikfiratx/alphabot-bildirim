@@ -28,7 +28,7 @@ SAYFA_ADLARI = {
     "raffles", "projects", "calendar", "dashboard", "settings", "premium",
     "raids", "collabs", "create", "team", "news", "docs", "login",
 }
-LINK_RE = re.compile(r"alphabot\.app/([A-Za-z0-9][A-Za-z0-9_-]*)", re.IGNORECASE)
+LINK_RE = re.compile(r"alphabot\.app/([A-Za-z0-9_-]+)", re.IGNORECASE)
 
 
 # ---------------- Telegram ----------------
