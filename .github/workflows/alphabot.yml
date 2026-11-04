@@ -15,7 +15,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
 
@@ -26,6 +26,11 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           MAX_HOURS: "8"
+          AUTO_JOIN: "1"
+          HARIC: ""
+          ALPHABOT_KEY_CHROME: ${{ secrets.ALPHABOT_KEY_CHROME }}
+          ALPHABOT_KEY_FIREFOX: ${{ secrets.ALPHABOT_KEY_FIREFOX }}
+          ALPHABOT_KEY_BRAVE: ${{ secrets.ALPHABOT_KEY_BRAVE }}
 
       - name: Bildirilenleri kaydet
         run: |
