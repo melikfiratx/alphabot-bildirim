@@ -21,6 +21,88 @@ TG_CHAT = os.environ["TELEGRAM_CHAT_ID"]
 MAX_HOURS = float(os.environ.get("MAX_HOURS", "8"))
 SEEN_FILE = "seen.json"
 
+# --- Otomatik katilim ayarlari ---
+AUTO_JOIN = os.environ.get("AUTO_JOIN", "1") == "1"
+HARIC = [w.strip().lower() for w in os.environ.get("HARIC", "").split(",") if w.strip()]
+HESAPLAR = [
+    ("Chrome", os.environ.get("ALPHABOT_KEY_CHROME", "").strip()),
+    ("Edge", API_KEY.strip()),
+    ("Firefox", os.environ.get("ALPHABOT_KEY_FIREFOX", "").strip()),
+    ("Brave", os.environ.get("ALPHABOT_KEY_BRAVE", "").strip()),
+]
+CEVIRI = [
+    ("already entered", "zaten", "Zaten katılmışsın"),
+    ("task", "hata", "Görev eksik"),
+    ("requirement", "hata", "Şart eksik"),
+    ("ended", "hata", "Çekiliş bitmiş"),
+    ("not started", "hata", "Çekiliş henüz başlamadı"),
+    ("not found", "hata", "Çekiliş bulunamadı"),
+    ("wallet", "hata", "Cüzdan sorunu"),
+    ("role", "hata", "Discord rolü yok"),
+    ("discord", "hata", "Discord şartı eksik"),
+    ("twitter", "hata", "X görevi eksik"),
+]
+
+
+def siniflandir(metin):
+    kucuk = str(metin).lower()
+    for anahtar, durum, tr in CEVIRI:
+        if anahtar in kucuk:
+            return durum, tr
+    metin = str(metin).replace("\n", " ").strip()
+    return "hata", metin[:120]
+
+
+def kayit_ol(api_key, slug):
+    """('ok'|'zaten'|'hata', aciklama)"""
+    req = urllib.request.Request(
+        "https://api.alphabot.app/v1/register",
+        data=json.dumps({"slug": slug}).encode(),
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json",
+                 "User-Agent": "alphabot-bildirim"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            cevap = json.load(r)
+    except urllib.error.HTTPError as e:
+        try:
+            hata = json.load(e)
+        except Exception:
+            hata = {}
+        if e.code == 401:
+            return "hata", "API anahtarı geçersiz"
+        if e.code == 429:
+            return "hata", "Limit aşıldı"
+        return siniflandir(hata.get("message") or json.dumps(hata) or f"HTTP {e.code}")
+    except Exception as e:
+        return "hata", "Bağlantı hatası"
+    print(f"[katilim {slug}]", json.dumps(cevap)[:400])
+    data = cevap.get("data") or {}
+    val = data.get("validation")
+    gecersiz = isinstance(val, dict) and (val.get("valid") is False or val.get("success") is False)
+    if cevap.get("success") and not gecersiz:
+        return "ok", ""
+    return siniflandir(data.get("resultMd") or cevap.get("message") or "Bilinmeyen hata")
+
+
+def otomatik_katil(slug):
+    """Bildirim mesajina eklenecek satirlari dondurur."""
+    ikon = {"ok": "✅", "zaten": "☑️", "hata": "⚠️"}
+    sonuc, gruplar = [], {}
+    for ad, key in HESAPLAR:
+        if not key:
+            continue
+        durum, aciklama = kayit_ol(key, slug)
+        sonuc.append(f"{ad} {ikon[durum]}")
+        if durum == "hata":
+            gruplar.setdefault(aciklama, []).append(ad)
+        time.sleep(0.5)
+    satirlar = ["🤖 Otomatik katılım: " + "  ".join(sonuc)]
+    for aciklama, hesaplar in gruplar.items():
+        satirlar.append(f"⚠️ {html.escape(aciklama)} ({', '.join(hesaplar)})")
+    return satirlar
+
 
 def to_ms(value):
     """Tarih alanini milisaniyeye cevirir (sayi ya da ISO metin olabilir)."""
@@ -110,6 +192,13 @@ def main():
         if r.get("winnerCount") is not None:
             satirlar.append(f"Kazanan sayısı: {r.get('winnerCount')}")
         satirlar.append(link)
+
+        if AUTO_JOIN and r.get("slug"):
+            ad_kucuk = str(r.get("name") or "").lower()
+            if any(w in ad_kucuk for w in HARIC):
+                satirlar.append("🚫 Hariç listesinde, otomatik katılım yapılmadı")
+            else:
+                satirlar += otomatik_katil(r["slug"])
 
         telegram_gonder("\n".join(satirlar))
         seen[rid] = end
