@@ -138,6 +138,7 @@ def main():
         print("Yeni mesaj yok.")
         return
     son_id = max(u["update_id"] for u in guncellemeler)
+    tg("getUpdates", {"offset": son_id + 1, "timeout": 0})
 
     sluglar, link_yok = [], False
     for u in guncellemeler:
