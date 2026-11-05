@@ -1,0 +1,40 @@
+name: Alphabot kazanc takibi
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kazanan
+  cancel-in-progress: false
+
+jobs:
+  kontrol:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Kazanclari kontrol et
+        run: python3 kazanan.py
+        env:
+          ALPHABOT_KEY_CHROME: ${{ secrets.ALPHABOT_KEY_CHROME }}
+          ALPHABOT_API_KEY: ${{ secrets.ALPHABOT_API_KEY }}
+          ALPHABOT_KEY_FIREFOX: ${{ secrets.ALPHABOT_KEY_FIREFOX }}
+          ALPHABOT_KEY_BRAVE: ${{ secrets.ALPHABOT_KEY_BRAVE }}
+          MAIL_ADRES: ${{ secrets.MAIL_ADRES }}
+          MAIL_SIFRE: ${{ secrets.MAIL_SIFRE }}
+          MAIL_ALICI: ${{ secrets.MAIL_ALICI }}
+
+      - name: Kazanclari kaydet
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add kazanilanlar.json
+          git diff --cached --quiet && exit 0
+          git commit -m "kazanilanlar.json guncelle"
+          for i in 1 2 3; do git pull --rebase origin main && git push && break; sleep 5; done
