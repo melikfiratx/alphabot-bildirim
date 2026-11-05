@@ -25,6 +25,9 @@ MAIL_SIFRE = os.environ["MAIL_SIFRE"].replace(" ", "").strip()
 MAIL_ALICI = (os.environ.get("MAIL_ALICI") or MAIL_ADRES).strip()
 DOSYA = "kazanilanlar.json"
 
+if "@" not in MAIL_ADRES or len(MAIL_SIFRE) != 16 or not MAIL_SIFRE.isascii():
+    print(f"UYARI: MAIL_ADRES '@' iceriyor mu: {'@' in MAIL_ADRES}, MAIL_SIFRE uzunlugu: {len(MAIL_SIFRE)} (16 olmali), sadece Ingilizce harf: {MAIL_SIFRE.isascii()}")
+
 
 def kazananlari_getir(key):
     params = {"filter": "winners", "scope": "all", "sort": "newest", "pageSize": 50}
@@ -41,9 +44,34 @@ def mail_at(konu, govde):
     msg["Subject"] = konu
     msg["From"] = MAIL_ADRES
     msg["To"] = MAIL_ALICI
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=30) as s:
-        s.login(MAIL_ADRES, MAIL_SIFRE)
-        s.send_message(msg)
+    son_hata = None
+    for deneme in range(2):
+        # once SSL (465), olmazsa STARTTLS (587)
+        try:
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=30) as s:
+                s.login(MAIL_ADRES, MAIL_SIFRE)
+                s.send_message(msg)
+            return
+        except smtplib.SMTPAuthenticationError:
+            raise SystemExit("HATA: Gmail giris reddedildi. MAIL_ADRES veya MAIL_SIFRE yanlis.")
+        except Exception as e:
+            son_hata = e
+            print("465 olmadi:", repr(e))
+        try:
+            with smtplib.SMTP("smtp.gmail.com", 587, timeout=30) as s:
+                s.ehlo()
+                s.starttls()
+                s.ehlo()
+                s.login(MAIL_ADRES, MAIL_SIFRE)
+                s.send_message(msg)
+            return
+        except smtplib.SMTPAuthenticationError:
+            raise SystemExit("HATA: Gmail giris reddedildi. MAIL_ADRES veya MAIL_SIFRE yanlis.")
+        except Exception as e:
+            son_hata = e
+            print("587 olmadi:", repr(e))
+        time.sleep(10)
+    raise SystemExit(f"HATA: Mail gonderilemedi: {son_hata!r}")
 
 
 def main():
