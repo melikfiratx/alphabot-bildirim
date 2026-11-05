@@ -12,6 +12,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from datetime import datetime, timedelta, timezone
 from email.mime.text import MIMEText
 
 HESAPLAR = [
@@ -24,6 +25,8 @@ MAIL_ADRES = os.environ["MAIL_ADRES"].strip()
 MAIL_SIFRE = os.environ["MAIL_SIFRE"].replace(" ", "").strip()
 MAIL_ALICI = (os.environ.get("MAIL_ALICI") or MAIL_ADRES).strip()
 DOSYA = "kazanilanlar.json"
+NOT_DOSYASI = "kazanclar.txt"
+HESAP_NO = {"Chrome": "1. hesap", "Edge": "2. hesap", "Firefox": "3. hesap", "Brave": "4. hesap"}
 
 if "@" not in MAIL_ADRES or len(MAIL_SIFRE) != 16 or not MAIL_SIFRE.isascii():
     print(f"UYARI: MAIL_ADRES '@' iceriyor mu: {'@' in MAIL_ADRES}, MAIL_SIFRE uzunlugu: {len(MAIL_SIFRE)} (16 olmali), sadece Ingilizce harf: {MAIL_SIFRE.isascii()}")
@@ -123,11 +126,21 @@ def main():
         konu = f"🏆 Alphabot: {len(yeniler)} yeni kazanç!"
         mail_at(konu, "Tebrikler! Yeni kazançların:\n\n" + "\n\n".join(satirlar))
         print(f"{len(yeniler)} yeni kazanc mail ile bildirildi.")
+        # Not defteri dosyasina ekle
+        zaman = datetime.now(timezone(timedelta(hours=3))).strftime("%d.%m.%Y %H:%M")
+        with open(NOT_DOSYASI, "a", encoding="utf-8") as f:
+            for ad, r in yeniler:
+                isim = r.get("name") or r.get("slug") or "İsimsiz çekiliş"
+                link = f"https://www.alphabot.app/{r.get('slug')}" if r.get("slug") else ""
+                f.write(f"{HESAP_NO.get(ad, ad)} kazandı | {isim}\n")
     else:
         print("Yeni kazanc yok.")
 
     with open(DOSYA, "w") as f:
         json.dump(kayit, f, indent=1, sort_keys=True)
+    if not os.path.exists(NOT_DOSYASI):
+        with open(NOT_DOSYASI, "w", encoding="utf-8") as f:
+            f.write("ALPHABOT KAZANÇLARIM\n\n")
 
 
 if __name__ == "__main__":
