@@ -119,7 +119,7 @@ def main():
         for ad, r in yeniler:
             isim = r.get("name") or r.get("slug") or "İsimsiz çekiliş"
             link = f"https://www.alphabot.app/{r.get('slug')}" if r.get("slug") else ""
-            satirlar.append(f"🏆 {ad} hesabı kazandı: {isim}\n   {link}")
+            satirlar.append(f"🏆 {dict(Chrome='1. hesap', Edge='2. hesap', Firefox='3. hesap', Brave='4. hesap').get(ad, ad)} kazandı: {isim}\n   {link}")
         konu = f"🏆 Alphabot: {len(yeniler)} yeni kazanç!"
         mail_at(konu, "Tebrikler! Yeni kazançların:\n\n" + "\n\n".join(satirlar))
         print(f"{len(yeniler)} yeni kazanc mail ile bildirildi.")
