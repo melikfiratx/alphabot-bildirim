@@ -6,6 +6,7 @@ Alphabot kazanc takibi
 - Bildirilenler kazanilanlar.json dosyasinda tutulur.
 """
 import json
+import re
 import os
 import smtplib
 import time
@@ -30,6 +31,56 @@ HESAP_NO = {"Chrome": "1. hesap", "Edge": "2. hesap", "Firefox": "3. hesap", "Br
 
 if "@" not in MAIL_ADRES or len(MAIL_SIFRE) != 16 or not MAIL_SIFRE.isascii():
     print(f"UYARI: MAIL_ADRES '@' iceriyor mu: {'@' in MAIL_ADRES}, MAIL_SIFRE uzunlugu: {len(MAIL_SIFRE)} (16 olmali), sadece Ingilizce harf: {MAIL_SIFRE.isascii()}")
+
+
+TIP_RE = re.compile(r"(\d+\s*x?\s*)?\b(GTD|FCFS|WL|FREE|OG|PUBLIC|GUARANTEED|ALLOWLIST|PRESALE)\b", re.IGNORECASE)
+AYRAC_RE = re.compile(r"\s+(?:x|×|<>|&)\s+", re.IGNORECASE)
+
+
+def _sade(t):
+    return re.sub(r"[^a-z0-9]", "", str(t).lower())
+
+
+def bicimle(ad, r):
+    """Ornek: 'BLURB 1.hesap @Blurb_xyz 7 GTD + 18 FCFS'"""
+    isim = str(r.get("name") or r.get("slug") or "")
+    url = str(r.get("twitterUrl") or "")
+    kullanici = url.rstrip("/").split("?")[0].split("/")[-1] if url else ""
+    # tur kismi: ilk ve son tur kelimesi arasini al, varsa parantezleri koru
+    eslesmeler = list(TIP_RE.finditer(isim))
+    tip = ""
+    if eslesmeler:
+        bas, son = eslesmeler[0].start(), eslesmeler[-1].end()
+        if bas > 0 and isim[bas - 1] == "(" and son < len(isim) and isim[son] == ")":
+            bas, son = bas - 1, son + 1
+        tip = isim[bas:son].strip()
+    # proje adi: cekilis adindaki parcalardan X kullanici adina en cok benzeyeni
+    proje = ""
+    k = _sade(kullanici)
+    for kok in ("official", "nft", "nfts", "xyz", "io", "eth", "app", "labs", "hq"):
+        if k.endswith(kok) and len(k) > len(kok) + 2:
+            k = k[: -len(kok)]
+    en_iyi = 0
+    for parca in AYRAC_RE.split(isim):
+        temiz = TIP_RE.sub("", parca)
+        temiz = re.sub(r"[()\[\]+\-–|]", " ", temiz)
+        temiz = re.sub(r"\s+", " ", temiz).strip()
+        p_sade = _sade(temiz)
+        if not p_sade or not k:
+            continue
+        if p_sade in k or k in p_sade:
+            puan = min(len(p_sade), len(k))
+            if puan > en_iyi:
+                en_iyi, proje = puan, temiz
+    if not proje:
+        proje = kullanici or isim
+    hesap = HESAP_NO.get(ad, ad).replace(". hesap", ".hesap")
+    parcalar = [proje, hesap]
+    if kullanici:
+        parcalar.append("@" + kullanici)
+    if tip:
+        parcalar.append(tip)
+    return " ".join(parcalar)
 
 
 def kazananlari_getir(key):
@@ -98,7 +149,6 @@ def main():
             hatalar.append(f"{ad}: {e}")
             continue
         print(f"{ad}: {len(raffles)} kazanc listede")
-        if raffles: print("ORNEK:", json.dumps(raffles[0], ensure_ascii=False)[:2000])
         bilinen = set(kayit.get(ad, []))
         for r in raffles:
             rid = str(r.get("_id") or r.get("id") or r.get("slug"))
@@ -123,7 +173,7 @@ def main():
         for ad, r in yeniler:
             isim = r.get("name") or r.get("slug") or "İsimsiz çekiliş"
             link = f"https://www.alphabot.app/{r.get('slug')}" if r.get("slug") else ""
-            satirlar.append(f"🏆 {dict(Chrome='1. hesap', Edge='2. hesap', Firefox='3. hesap', Brave='4. hesap').get(ad, ad)} kazandı: {isim}\n   {link}")
+            satirlar.append(f"🏆 {bicimle(ad, r)}\n   {link}")
         konu = f"🏆 Alphabot: {len(yeniler)} yeni kazanç!"
         mail_at(konu, "Tebrikler! Yeni kazançların:\n\n" + "\n\n".join(satirlar))
         print(f"{len(yeniler)} yeni kazanc mail ile bildirildi.")
@@ -133,7 +183,7 @@ def main():
             for ad, r in yeniler:
                 isim = r.get("name") or r.get("slug") or "İsimsiz çekiliş"
                 link = f"https://www.alphabot.app/{r.get('slug')}" if r.get("slug") else ""
-                f.write(f"{HESAP_NO.get(ad, ad)} kazandı | {isim}\n")
+                f.write(f"{bicimle(ad, r)}\n")
     else:
         print("Yeni kazanc yok.")
 
