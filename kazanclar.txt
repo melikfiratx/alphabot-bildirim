@@ -93,3 +93,4 @@ Project Sphere gtd khpe li hesap sol (totalde 3 wl)
 1. hesap kazandı | ORDICA x GrumpGuysNFT 10 GTD
 4. hesap kazandı | REMEMBERUS X GIRAFFIES  FCFS
 4. hesap kazandı | Spike FCFS <> Noxus
+4. hesap kazandı | Noxus x Foxville (FCFS)
