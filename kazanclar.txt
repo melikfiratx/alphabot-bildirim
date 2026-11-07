@@ -65,3 +65,4 @@ ALTER // EGO 1.hesap gtd
 
 
 Foome 1.hesap @foomeapp
+ELYSIEDEN 4.hesap @elysieden 5 GTD
