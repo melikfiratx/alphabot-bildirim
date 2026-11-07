@@ -98,6 +98,7 @@ def main():
             hatalar.append(f"{ad}: {e}")
             continue
         print(f"{ad}: {len(raffles)} kazanc listede")
+        if raffles: print("ORNEK:", json.dumps(raffles[0], ensure_ascii=False)[:2000])
         bilinen = set(kayit.get(ad, []))
         for r in raffles:
             rid = str(r.get("_id") or r.get("id") or r.get("slug"))
