@@ -66,3 +66,6 @@ ALTER // EGO 1.hesap gtd
 
 Foome 1.hesap @foomeapp
 ELYSIEDEN 4.hesap @elysieden 5 GTD
+SPIKE 1.hesap @spike__wtf
+Lichward 1.hesap @lichward_
+SPIKE 2.hesap @spike__wtf
