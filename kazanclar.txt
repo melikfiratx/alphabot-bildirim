@@ -84,3 +84,4 @@ Project Sphere gtd khpe li hesap sol (totalde 3 wl)
 1. hesap kazandı | Ordica X NULORA 45 GTD
 3. hesap kazandı | Bloom Terminal x Labyrnth
 3. hesap kazandı | Tidebound - 6x GTD and 18x FCFS
+1. hesap kazandı | Celestial X BrambleBash GTD
