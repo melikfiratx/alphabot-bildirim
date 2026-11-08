@@ -7,6 +7,7 @@ Alphabot kisa cekilis bildirimi
 """
 import html
 import json
+import firo
 import os
 import sys
 import time
@@ -86,12 +87,19 @@ def kayit_ol(api_key, slug):
     return siniflandir(data.get("resultMd") or cevap.get("message") or "Bilinmeyen hata")
 
 
-def otomatik_katil(slug):
+FIRO = firo.yukle()
+
+
+def otomatik_katil(slug, r=None):
     """Bildirim mesajina eklenecek satirlari dondurur."""
-    ikon = {"ok": "✅", "zaten": "☑️", "hata": "⚠️"}
-    sonuc, gruplar = [], {}
+    ikon = {"ok": "✅", "zaten": "☑️", "hata": "⚠️", "atla": "⏭️"}
+    sonuc, gruplar, atlanan = [], {}, []
     for ad, key in HESAPLAR:
         if not key:
+            continue
+        if firo.atla_mi(FIRO, ad, r):
+            sonuc.append(f"{ad} {ikon['atla']}")
+            atlanan.append(ad)
             continue
         durum, aciklama = kayit_ol(key, slug)
         sonuc.append(f"{ad} {ikon[durum]}")
@@ -101,6 +109,8 @@ def otomatik_katil(slug):
     satirlar = ["🤖 Otomatik katılım: " + "  ".join(sonuc)]
     for aciklama, hesaplar in gruplar.items():
         satirlar.append(f"⚠️ {html.escape(aciklama)} ({', '.join(hesaplar)})")
+    if atlanan:
+        satirlar.append(f"⏭️ Bu projeden zaten GTD'n var ({', '.join(atlanan)})")
     return satirlar
 
 
@@ -198,7 +208,7 @@ def main():
             if any(w in ad_kucuk for w in HARIC):
                 satirlar.append("🚫 Hariç listesinde, otomatik katılım yapılmadı")
             else:
-                satirlar += otomatik_katil(r["slug"])
+                satirlar += otomatik_katil(r["slug"], r)
 
         telegram_gonder("\n".join(satirlar))
         seen[rid] = end
