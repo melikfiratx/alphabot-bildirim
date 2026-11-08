@@ -6,6 +6,7 @@ Alphabot kazanc takibi
 - Bildirilenler kazanilanlar.json dosyasinda tutulur.
 """
 import json
+import firo
 import re
 import os
 import smtplib
@@ -83,14 +84,31 @@ def bicimle(ad, r):
     return " ".join(parcalar)
 
 
-def kazananlari_getir(key):
-    params = {"filter": "winners", "scope": "all", "sort": "newest", "pageSize": 50}
+def kazananlari_getir(key, sayfa=0):
+    params = {"filter": "winners", "scope": "all", "sort": "newest", "pageSize": 50, "pageNum": sayfa}
     url = "https://api.alphabot.app/v1/raffles?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={"Authorization": f"Bearer {key}",
                                                "User-Agent": "alphabot-kazanan"})
     with urllib.request.urlopen(req, timeout=20) as r:
         cevap = json.load(r)
-    return (cevap.get("data") or {}).get("raffles", [])
+    data = cevap.get("data") or {}
+    kazananlari_getir.son_sayfa = data.get("finalPage", True)
+    return data.get("raffles", [])
+
+
+def proje_kaydet(projeler, ad, raffles):
+    """Garanti kazanilan projeleri (Firo islemi icin) kaydeder."""
+    d = projeler.setdefault(ad, {"ids": [], "x": []})
+    ids, xs = set(d.get("ids", [])), set(d.get("x", []))
+    for r in raffles:
+        if not firo.garanti_mi(r.get("name")):
+            continue
+        if r.get("projectId"):
+            ids.add(str(r["projectId"]))
+        x = firo.x_kullanici(r.get("twitterUrl"))
+        if x:
+            xs.add(x)
+    d["ids"], d["x"] = sorted(ids), sorted(xs)
 
 
 def mail_at(konu, govde):
@@ -136,6 +154,9 @@ def main():
     except (FileNotFoundError, json.JSONDecodeError):
         kayit, ilk_calisma = {}, True
 
+    projeler = firo.yukle()
+    saat = datetime.now(timezone(timedelta(hours=3))).hour
+    tam_tarama = (not projeler) or saat == 4  # ilk seferde ve her gece 04'te tum sayfalar
     yeniler, hatalar = [], []
     for ad, key in HESAPLAR:
         if not key:
@@ -149,6 +170,19 @@ def main():
             hatalar.append(f"{ad}: {e}")
             continue
         print(f"{ad}: {len(raffles)} kazanc listede")
+        proje_kaydet(projeler, ad, raffles)
+        if tam_tarama:
+            sayfa = 1
+            while not getattr(kazananlari_getir, "son_sayfa", True) and sayfa < 10:
+                time.sleep(2)
+                try:
+                    ek = kazananlari_getir(key, sayfa)
+                except Exception as e:
+                    print(f"{ad}: sayfa {sayfa} alinamadi: {e}")
+                    break
+                proje_kaydet(projeler, ad, ek)
+                sayfa += 1
+            print(f"{ad}: tam tarama {sayfa} sayfa")
         bilinen = set(kayit.get(ad, []))
         for r in raffles:
             rid = str(r.get("_id") or r.get("id") or r.get("slug"))
@@ -189,6 +223,9 @@ def main():
 
     with open(DOSYA, "w") as f:
         json.dump(kayit, f, indent=1, sort_keys=True)
+    with open(firo.DOSYA, "w") as f:
+        json.dump(projeler, f, indent=1, sort_keys=True)
+    print("Firo: " + ", ".join(f"{a} {len(v.get('ids', []))} proje" for a, v in projeler.items()))
     if not os.path.exists(NOT_DOSYASI):
         with open(NOT_DOSYASI, "w", encoding="utf-8") as f:
             f.write("ALPHABOT KAZANÇLARIM\n\n")
