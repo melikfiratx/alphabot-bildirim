@@ -6,6 +6,7 @@ Alphabot otomatik katilim
 - Sonucu ayni bota mesaj olarak yazar.
 """
 import json
+import firo
 import os
 import re
 import time
@@ -131,6 +132,27 @@ def kisalt(metin, n=160):
     return metin if len(metin) <= n else metin[: n - 1] + "…"
 
 
+# ---------------- Firo islemi ----------------
+def tek_cekilis(slug, api_key):
+    """Cekilisin projectId / twitterUrl bilgisini getirir. Olmazsa None."""
+    url = "https://api.alphabot.app/v1/raffles/" + urllib.parse.quote(slug)
+    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {api_key}",
+                                               "User-Agent": "alphabot-katilim"})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:
+            cevap = json.load(r)
+    except urllib.error.HTTPError as e:
+        print(f"[firo {slug}] HTTP {e.code}")
+        return None
+    except Exception as e:
+        print(f"[firo {slug}] {e}")
+        return None
+    data = cevap.get("data") or {}
+    if isinstance(data, dict) and isinstance(data.get("raffle"), dict):
+        data = data["raffle"]
+    return data if isinstance(data, dict) else None
+
+
 # ---------------- Ana akis ----------------
 def main():
     guncellemeler = tg("getUpdates", {"timeout": 0}).get("result", [])
@@ -163,15 +185,30 @@ def main():
     eksik = [ad for ad, k in HESAPLAR if not k]
     mesaj_at(f"⏳ {len(sluglar)} çekiliş alındı, {len(aktif)} hesapla katılıyorum...")
 
+    # Firo: her cekilisin projesini ogren (anahtarlar sirayla kullanilir)
+    firo_veri = firo.yukle()
+    bilgi, basarisiz = {}, 0
+    for i, s in enumerate(sluglar):
+        if not firo_veri or basarisiz >= 3 and not any(bilgi.values()):
+            break
+        bilgi[s] = tek_cekilis(s, aktif[i % len(aktif)][1])
+        if bilgi[s] is None:
+            basarisiz += 1
+        time.sleep(0.5)
+    firo_calisti = any(bilgi.values())
+
     sonuclar = {s: {} for s in sluglar}
     for ad, key in aktif:
         for s in sluglar:
+            if firo.atla_mi(firo_veri, ad, bilgi.get(s)):
+                sonuclar[s][ad] = ("atla", "")
+                continue
             sonuclar[s][ad] = kayit_ol(key, s)
             time.sleep(BEKLEME_SN)
 
     # Rapor
-    IKON = {"ok": "✅", "zaten": "☑️", "hata": "⚠️"}
-    sayac = {"ok": 0, "zaten": 0, "hata": 0}
+    IKON = {"ok": "✅", "zaten": "☑️", "hata": "⚠️", "atla": "⏭️"}
+    sayac = {"ok": 0, "zaten": 0, "hata": 0, "atla": 0}
     satirlar, sorunlar = [], []
     for s in sluglar:
         for ad, _ in aktif:
@@ -187,12 +224,16 @@ def main():
             sorunlar.append(f"⚠️ {aciklama} ({', '.join(hesaplar)})\n   https://www.alphabot.app/{s}")
 
     ust = f"✅ {sayac['ok']} yeni katılım   ☑️ {sayac['zaten']} zaten katılmış   ⚠️ {sayac['hata']} sorun"
+    if sayac["atla"]:
+        ust += f"   ⏭️ {sayac['atla']} atlandı (GTD'n var)"
     mesaj = [ust, ""] + satirlar
     if sorunlar:
         mesaj += ["", "Sorunlu olanlar:"] + sorunlar
     if eksik:
         mesaj += ["", "Anahtarı olmadığı için atlanan hesaplar: " + ", ".join(eksik)]
-    mesaj += ["", "✅ katıldı · ☑️ zaten katılmıştın · ⚠️ sorun var"]
+    if firo_veri and not firo_calisti:
+        mesaj += ["", "ℹ️ Firo kontrolü yapılamadı (çekiliş bilgisi alınamadı), tüm hesaplarla denendi."]
+    mesaj += ["", "✅ katıldı · ☑️ zaten katılmıştın · ⚠️ sorun var · ⏭️ projeden GTD'n var, atlandı"]
     mesaj_at("\n".join(mesaj))
 
     # Mesajlari islenmis olarak isaretle (tekrar islenmesin)
