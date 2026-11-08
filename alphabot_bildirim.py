@@ -137,7 +137,7 @@ def get_raffles():
         "scope": "community",
         "filter": "unregistered",
         "status": "active",
-        "sort": "newest",
+        "sort": "ending", "sortDir": 1,
         "pageSize": 50,
     }
     url = "https://api.alphabot.app/v1/raffles?" + urllib.parse.urlencode(params)
