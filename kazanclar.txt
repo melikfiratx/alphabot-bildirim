@@ -92,3 +92,6 @@ ElysiumBrokers 3.hesap @elysiumbrokers GTD
 Foome 2.hesap @foomeapp GTD
 Foome 3.hesap @foomeapp GTD
 Giraffies 1.hesap @giraffies_nft (Public)
+Zunki 1.hesap @zunki_xyz GTD
+Equity keeper 3.hesap @equitykeeper GTD
+Zunki 3.hesap @zunki_xyz GTD
