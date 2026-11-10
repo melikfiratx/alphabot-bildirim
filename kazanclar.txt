@@ -89,3 +89,5 @@ Giraffies 1.hesap @giraffies_nft (FCFS)
 UNSEEN btc 1.hesap sign et alucardın x bildirisinde
 ElysiumBrokers 1.hesap @elysiumbrokers GTD
 ElysiumBrokers 3.hesap @elysiumbrokers GTD
+Foome 2.hesap @foomeapp GTD
+Foome 3.hesap @foomeapp GTD
