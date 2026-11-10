@@ -98,3 +98,7 @@ Zunki 3.hesap @zunki_xyz GTD
 Cashmere labs 2.hesap @cashmerelabs
 Sindicat 1.hesap @sindicatgame 33x WL
 Sindicat 2.hesap @sindicatgame 33x WL
+
+Hall of Ash 1.hesap fcfs 1e1d  @hallofash
+
+
