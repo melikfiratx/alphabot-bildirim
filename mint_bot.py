@@ -89,46 +89,104 @@ def dinle():
         mesaj_at(eslestir(metinler))
 
 
-# ---------------- 2) Alphabot gunluk kontrol ----------------
+# ---------------- 2) Alphabot takvimi (gunluk) ----------------
+def kitap_adlari():
+    """kazanclar.txt: @kullanici -> o kullanici adinin gectigi satirlar"""
+    adlar = {}
+    try:
+        with open("kazanclar.txt", encoding="utf-8") as f:
+            for satir in f:
+                satir = satir.strip()
+                for k in KULLANICI_RE.findall(satir):
+                    adlar.setdefault(k.lower(), []).append(satir)
+    except FileNotFoundError:
+        pass
+    return adlar
+
+
+def takvim_getir(api_key, sayfa):
+    params = {"scope": "all", "sort": "minting", "sortDir": 1, "pageSize": 50, "pageNum": sayfa}
+    url = "https://api.alphabot.app/v1/raffles?" + urllib.parse.urlencode(params)
+    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {api_key}",
+                                               "User-Agent": "alphabot-mint"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        data = json.load(r).get("data", {})
+    return data.get("raffles", []), data.get("finalPage", True)
+
+
+def x_adi(url):
+    url = str(url or "").strip()
+    return url.rstrip("/").split("?")[0].split("/")[-1].lstrip("@").lower() if url else ""
+
+
 def gunluk():
-    import kazanan as kz  # kazanc takibinin fonksiyonlarini kullanir
+    api_key = os.environ["ALPHABOT_API_KEY"].strip()
     bugun = datetime.now(TR).date()
-    bulunan, hatalar = [], []
-    for ad, key in kz.HESAPLAR:
-        if not key:
-            continue
-        sayfa = 0
-        while True:
-            try:
-                raffles = kz.kazananlari_getir(key, sayfa)
-            except Exception as e:
-                hatalar.append(f"{ad}: {e}")
-                break
-            for r in raffles:
-                md = r.get("mintDate")
-                if not md:
-                    continue
-                zaman = datetime.fromtimestamp(md / 1000 if md > 1e11 else md, TR)
-                if zaman.date() == bugun:
-                    saat = zaman.strftime("%H:%M") if r.get("mintDateHasTime") else ""
-                    bulunan.append((zaman, kz.bicimle(ad, r), saat))
-            sayfa += 1
-            if getattr(kz.kazananlari_getir, "son_sayfa", True) or sayfa >= 10:
-                break
-            time.sleep(2)
-        time.sleep(1)
+    kitap = kitap_adlari()
+    bugunku, sayfa, gorulen = {}, 0, 0
+    while sayfa < 8:
+        try:
+            raffles, son = takvim_getir(api_key, sayfa)
+        except Exception as e:
+            print("Takvim alinamadi:", e)
+            break
+        gorulen += len(raffles)
+        gecti = False
+        for r in raffles:
+            md = r.get("mintDate")
+            if not md:
+                continue
+            zaman = datetime.fromtimestamp(md / 1000 if md > 1e11 else md, TR)
+            if zaman.date() > bugun:
+                gecti = True
+                continue
+            if zaman.date() == bugun:
+                x = x_adi(r.get("twitterUrl"))
+                if x and x not in bugunku:
+                    bugunku[x] = zaman.strftime("%H:%M") if r.get("mintDateHasTime") else ""
+        if son or gecti:
+            break
+        sayfa += 1
+        time.sleep(2)
+    print(f"Takvimde {gorulen} cekilis tarandi, bugun mint olan {len(bugunku)} proje bulundu: {sorted(bugunku)}")
+
+    # Yedek: 4 hesabin kendi kazanclarindaki mint tarihleri (takvimde cikmazsa diye)
+    try:
+        import kazanan as kz
+        for ad, key in kz.HESAPLAR:
+            if not key:
+                continue
+            for sayfa_no in range(10):
+                raffles = kz.kazananlari_getir(key, sayfa_no)
+                for r in raffles:
+                    md = r.get("mintDate")
+                    if not md:
+                        continue
+                    zaman = datetime.fromtimestamp(md / 1000 if md > 1e11 else md, TR)
+                    x = x_adi(r.get("twitterUrl"))
+                    if zaman.date() == bugun and x and x not in bugunku:
+                        bugunku[x] = zaman.strftime("%H:%M") if r.get("mintDateHasTime") else ""
+                        kitap.setdefault(x, []).append(kz.bicimle(ad, r))
+                if getattr(kz.kazananlari_getir, "son_sayfa", True):
+                    break
+                time.sleep(2)
+            time.sleep(1)
+    except Exception as e:
+        print("Kazanc kontrolu yapilamadi:", e)
 
     tarih = bugun.strftime("%d.%m.%Y")
-    if bulunan:
-        bulunan.sort(key=lambda x: x[0])
-        satirlar = [f"🗓️ Alphabot'a göre BUGÜN ({tarih}) mintin var! ({len(bulunan)})", ""]
-        for _, bicim, saat in bulunan:
-            satirlar.append(f"• {bicim}" + (f"  ⏰ {saat}" if saat else ""))
+    eslesen = {x: kitap[x] for x in bugunku if x in kitap}
+    if eslesen:
+        satirlar = [f"🗓️ Alphabot takvimine göre BUGÜN ({tarih}) mintin var! ({len(eslesen)} proje)", ""]
+        for x, ilgili in eslesen.items():
+            saat = bugunku[x]
+            satirlar.append(f"• @{x}" + (f"  ⏰ {saat}" if saat else ""))
+            for satir in ilgili:
+                satirlar.append(f"   {satir}")
         satirlar += ["", "Not: Tarihler Alphabot'tan geliyor, X'ten teyit etmeyi unutma."]
     else:
-        satirlar = [f"🗓️ Alphabot'a göre bugün ({tarih}) mintin yok."]
-    if hatalar:
-        satirlar += ["", "Kontrol edilemeyen hesaplar: " + "; ".join(hatalar)]
+        satirlar = [f"🗓️ Alphabot takvimine göre bugün ({tarih}) mintin yok.",
+                    f"(Takvimde bugün {len(bugunku)} proje var, hiçbiri kazanclar.txt ile eşleşmedi.)"]
     print("\n".join(satirlar))
     mesaj_at("\n".join(satirlar))
 
