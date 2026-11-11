@@ -119,3 +119,6 @@ Hall of Ash 1.hesap fcfs 1e1d  @hallofash
 AGNTX 1.hesap @agntx_hq GTD
 MintropolisX 2.hesap @mintropolisx GTD
 Brawly 3.hesap @playbrawly GTD
+LINID 1.hesap @linid_nft GTD
+LINID 2.hesap @linid_nft GTD
+LINID 4.hesap @linid_nft GTD
