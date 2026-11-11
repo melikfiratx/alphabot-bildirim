@@ -1,0 +1,23 @@
+name: Mint botu dinle
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mint_dinle
+  cancel-in-progress: false
+
+jobs:
+  dinle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: Yapistirilan listeyi eslestir
+        run: python3 mint_bot.py dinle
+        env:
+          MINT_BOT_TOKEN: ${{ secrets.MINT_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
