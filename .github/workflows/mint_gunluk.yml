@@ -1,0 +1,25 @@
+name: Mint gunluk Alphabot kontrolu
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gunluk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - name: Bugunun mintlerini kontrol et
+        run: python3 mint_bot.py gunluk
+        env:
+          MINT_BOT_TOKEN: ${{ secrets.MINT_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ALPHABOT_KEY_CHROME: ${{ secrets.ALPHABOT_KEY_CHROME }}
+          ALPHABOT_API_KEY: ${{ secrets.ALPHABOT_API_KEY }}
+          ALPHABOT_KEY_FIREFOX: ${{ secrets.ALPHABOT_KEY_FIREFOX }}
+          ALPHABOT_KEY_BRAVE: ${{ secrets.ALPHABOT_KEY_BRAVE }}
+          MAIL_ADRES: ${{ secrets.MAIL_ADRES }}
+          MAIL_SIFRE: ${{ secrets.MAIL_SIFRE }}
