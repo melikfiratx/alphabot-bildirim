@@ -104,8 +104,10 @@ def kitap_adlari():
     return adlar
 
 
-def takvim_getir(api_key, sayfa):
+def takvim_getir(api_key, sayfa, durum=None):
     params = {"scope": "all", "sort": "minting", "sortDir": 1, "pageSize": 50, "pageNum": sayfa}
+    if durum:
+        params["status"] = durum
     url = "https://api.alphabot.app/v1/raffles?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(url, headers={"Authorization": f"Bearer {api_key}",
                                                "User-Agent": "alphabot-mint"})
@@ -123,30 +125,38 @@ def gunluk():
     api_key = os.environ["ALPHABOT_API_KEY"].strip()
     bugun = datetime.now(TR).date()
     kitap = kitap_adlari()
-    bugunku, sayfa, gorulen = {}, 0, 0
-    while sayfa < 8:
-        try:
-            raffles, son = takvim_getir(api_key, sayfa)
-        except Exception as e:
-            print("Takvim alinamadi:", e)
-            break
-        gorulen += len(raffles)
-        gecti = False
-        for r in raffles:
-            md = r.get("mintDate")
-            if not md:
-                continue
-            zaman = datetime.fromtimestamp(md / 1000 if md > 1e11 else md, TR)
-            if zaman.date() > bugun:
-                gecti = True
-                continue
-            if zaman.date() == bugun:
-                x = x_adi(r.get("twitterUrl"))
-                if x and x not in bugunku:
-                    bugunku[x] = zaman.strftime("%H:%M") if r.get("mintDateHasTime") else ""
-        if son or gecti:
-            break
-        sayfa += 1
+    bugunku, gorulen = {}, 0
+    for durum in (None, "ended", "finalized"):
+        sayfa, sayi, bugun_sayi, ornek_tarihler = 0, 0, 0, []
+        while sayfa < 6:
+            try:
+                raffles, son = takvim_getir(api_key, sayfa, durum)
+            except Exception as e:
+                print(f"[{durum}] takvim alinamadi:", e)
+                break
+            sayi += len(raffles)
+            gecti = False
+            for r in raffles:
+                md = r.get("mintDate")
+                if not md:
+                    continue
+                zaman = datetime.fromtimestamp(md / 1000 if md > 1e11 else md, TR)
+                if len(ornek_tarihler) < 3:
+                    ornek_tarihler.append(zaman.strftime("%d.%m"))
+                if zaman.date() > bugun:
+                    gecti = True
+                    continue
+                if zaman.date() == bugun:
+                    x = x_adi(r.get("twitterUrl"))
+                    if x and x not in bugunku:
+                        bugun_sayi += 1
+                        bugunku[x] = zaman.strftime("%H:%M") if r.get("mintDateHasTime") else ""
+            if son or gecti:
+                break
+            sayfa += 1
+            time.sleep(2)
+        gorulen += sayi
+        print(f"[durum={durum or 'hepsi'}] {sayi} cekilis, bugun mint: {bugun_sayi}, ilk mint tarihleri: {ornek_tarihler}")
         time.sleep(2)
     print(f"Takvimde {gorulen} cekilis tarandi, bugun mint olan {len(bugunku)} proje bulundu: {sorted(bugunku)}")
 
