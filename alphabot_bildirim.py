@@ -150,13 +150,14 @@ def sure_yazi(ms):
     return f"{saat} sa {dk} dk" if saat else f"{dk} dk"
 
 
-def get_raffles():
+def _sayfa_getir(sayfa):
     params = {
         "scope": "community",
         "filter": "unregistered",
         "status": "active",
         "sort": "ending", "sortDir": 1,
         "pageSize": 50,
+        "pageNum": sayfa,
     }
     url = "https://api.alphabot.app/v1/raffles?" + urllib.parse.urlencode(params)
     req = urllib.request.Request(
@@ -167,7 +168,24 @@ def get_raffles():
         data = json.load(resp)
     if not data.get("success"):
         raise RuntimeError(f"Alphabot hata dondu: {data}")
-    return data.get("data", {}).get("raffles", [])
+    d = data.get("data", {})
+    return d.get("raffles", []), d.get("finalPage", True)
+
+
+def get_raffles():
+    raffles, son = _sayfa_getir(0)
+    # Guvenlik agi: ilk 50'nin sonuncusu bile MAX_HOURS icinde bitiyorsa ikinci 50'yi de al
+    if raffles and not son and len(raffles) >= 50:
+        sinir = time.time() * 1000 + MAX_HOURS * 3600 * 1000
+        son_bitis = to_ms(raffles[-1].get("endDate"))
+        if son_bitis is not None and son_bitis <= sinir:
+            try:
+                ek, _ = _sayfa_getir(1)
+                print(f"Liste dolu: ikinci sayfa alindi (+{len(ek)} cekilis)")
+                raffles += ek
+            except Exception as e:
+                print("Ikinci sayfa alinamadi, ilk 50 ile devam:", e)
+    return raffles
 
 
 def telegram_gonder(metin):
