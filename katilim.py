@@ -155,7 +155,11 @@ def tek_cekilis(slug, api_key):
 
 # ---------------- Ana akis ----------------
 def main():
-    guncellemeler = tg("getUpdates", {"timeout": 0}).get("result", [])
+    try:
+        guncellemeler = tg("getUpdates", {"timeout": 0}).get("result", [])
+    except Exception as e:
+        print("Telegram'a ulasilamadi, sonraki turda denenecek:", e)
+        return
     if not guncellemeler:
         print("Yeni mesaj yok.")
         return
@@ -206,6 +210,24 @@ def main():
             sonuclar[s][ad] = kayit_ol(key, s)
             time.sleep(BEKLEME_SN)
 
+    # Ikinci deneme: hata alanlari bir kez daha dene
+    TEKRAR_YOK = ("Çekiliş bitmiş", "Çekiliş bulunamadı", "API anahtarı geçersiz", "Çekiliş henüz başlamadı")
+    tekrar = [(s, ad, key) for ad, key in aktif for s in sluglar
+              if sonuclar[s][ad][0] == "hata" and not sonuclar[s][ad][1].startswith(TEKRAR_YOK)]
+    duzelen = 0
+    if tekrar:
+        print(f"{len(tekrar)} kayit ikinci kez denenecek")
+        time.sleep(60)
+        for s, ad, key in tekrar:
+            d, a = kayit_ol(key, s)
+            if d in ("ok", "zaten"):
+                d, a = "ok", ""
+                duzelen += 1
+            else:
+                a = a + " (2 kez denendi)"
+            sonuclar[s][ad] = (d, a)
+            time.sleep(BEKLEME_SN)
+
     # Rapor
     IKON = {"ok": "✅", "zaten": "☑️", "hata": "⚠️", "atla": "⏭️"}
     sayac = {"ok": 0, "zaten": 0, "hata": 0, "atla": 0}
@@ -226,6 +248,8 @@ def main():
     ust = f"✅ {sayac['ok']} yeni katılım   ☑️ {sayac['zaten']} zaten katılmış   ⚠️ {sayac['hata']} sorun"
     if sayac["atla"]:
         ust += f"   ⏭️ {sayac['atla']} atlandı (GTD'n var)"
+    if duzelen:
+        ust += f"\n🔁 {duzelen} kayıt ikinci denemede tamamlandı"
     mesaj = [ust, ""] + satirlar
     if sorunlar:
         mesaj += ["", "Sorunlu olanlar:"] + sorunlar
