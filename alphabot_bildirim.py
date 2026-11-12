@@ -90,25 +90,43 @@ def kayit_ol(api_key, slug):
 FIRO = firo.yukle()
 
 
-def otomatik_katil(slug, r=None):
-    """Bildirim mesajina eklenecek satirlari dondurur."""
-    ikon = {"ok": "✅", "zaten": "☑️", "hata": "⚠️", "atla": "⏭️"}
-    sonuc, gruplar, atlanan = [], {}, []
+TEKRAR_YOK = ("Çekiliş bitmiş", "Çekiliş bulunamadı", "API anahtarı geçersiz", "Çekiliş henüz başlamadı")
+TEKRAR_BEKLEME_SN = 45
+
+
+IKON = {"ok": "✅", "zaten": "☑️", "hata": "⚠️", "atla": "⏭️"}
+
+
+def ilk_katilim(slug, r=None):
+    """4 hesapla ilk deneme. {hesap: (durum, aciklama)} dondurur."""
+    sonuclar = {}
     for ad, key in HESAPLAR:
         if not key:
             continue
         if firo.atla_mi(FIRO, ad, r):
-            sonuc.append(f"{ad} {ikon['atla']}")
-            atlanan.append(ad)
+            sonuclar[ad] = ("atla", "")
             continue
-        durum, aciklama = kayit_ol(key, slug)
-        sonuc.append(f"{ad} {ikon[durum]}")
-        if durum == "hata":
-            gruplar.setdefault(aciklama, []).append(ad)
+        sonuclar[ad] = kayit_ol(key, slug)
         time.sleep(0.5)
-    satirlar = ["🤖 Otomatik katılım: " + "  ".join(sonuc)]
+    return sonuclar
+
+
+def tekrar_edilecek_mi(durum, aciklama):
+    return durum == "hata" and not aciklama.startswith(TEKRAR_YOK)
+
+
+def katilim_satirlari(sonuclar, tekrar_edilen, duzelen):
+    gruplar = {}
+    for ad, (d, a) in sonuclar.items():
+        if d == "hata":
+            gruplar.setdefault(a, []).append(ad)
+    satirlar = ["🤖 Otomatik katılım: " + "  ".join(f"{ad} {IKON[d]}" for ad, (d, a) in sonuclar.items())]
     for aciklama, hesaplar in gruplar.items():
-        satirlar.append(f"⚠️ {html.escape(aciklama)} ({', '.join(hesaplar)})")
+        ek = " – 2 kez denendi" if any(h in tekrar_edilen for h in hesaplar) else ""
+        satirlar.append(f"⚠️ {html.escape(aciklama)} ({', '.join(hesaplar)}){ek}")
+    if duzelen:
+        satirlar.append(f"🔁 {duzelen} hesap ikinci denemede katıldı")
+    atlanan = [ad for ad, (d, a) in sonuclar.items() if d == "atla"]
     if atlanan:
         satirlar.append(f"⏭️ Bu projeden zaten GTD'n var ({', '.join(atlanan)})")
     return satirlar
@@ -182,7 +200,7 @@ def main():
         print("Ornek alan adlari:", sorted(raffles[0].keys()))
 
     now = time.time() * 1000
-    yeni = 0
+    bekleyen = []  # once hepsine katil, sonra tek seferde tekrar dene, en son bildir
     for r in raffles:
         rid = str(r.get("_id") or r.get("id") or r.get("slug"))
         start, end = to_ms(r.get("startDate")), to_ms(r.get("endDate"))
@@ -203,15 +221,39 @@ def main():
             satirlar.append(f"Kazanan sayısı: {r.get('winnerCount')}")
         satirlar.append(link)
 
+        sonuclar = None
         if AUTO_JOIN and r.get("slug"):
             ad_kucuk = str(r.get("name") or "").lower()
             if any(w in ad_kucuk for w in HARIC):
                 satirlar.append("🚫 Hariç listesinde, otomatik katılım yapılmadı")
             else:
-                satirlar += otomatik_katil(r["slug"], r)
+                sonuclar = ilk_katilim(r["slug"], r)
+        bekleyen.append({"rid": rid, "end": end, "slug": r.get("slug"), "satirlar": satirlar,
+                         "sonuclar": sonuclar, "tekrar": [], "duzelen": 0})
 
+    # Ikinci deneme: tum cekilisler icin TEK bekleme
+    tekrar = [(b, ad) for b in bekleyen if b["sonuclar"]
+              for ad, (d, a) in b["sonuclar"].items() if tekrar_edilecek_mi(d, a)]
+    if tekrar:
+        print(f"{len(tekrar)} kayit ikinci kez denenecek")
+        time.sleep(TEKRAR_BEKLEME_SN)
+        anahtar = dict(HESAPLAR)
+        for b, ad in tekrar:
+            d, a = kayit_ol(anahtar[ad], b["slug"])
+            if d in ("ok", "zaten"):
+                d, a = "ok", ""
+                b["duzelen"] += 1
+            b["sonuclar"][ad] = (d, a)
+            b["tekrar"].append(ad)
+            time.sleep(0.5)
+
+    yeni = 0
+    for b in bekleyen:
+        satirlar = b["satirlar"]
+        if b["sonuclar"]:
+            satirlar += katilim_satirlari(b["sonuclar"], b["tekrar"], b["duzelen"])
         telegram_gonder("\n".join(satirlar))
-        seen[rid] = end
+        seen[b["rid"]] = b["end"]
         yeni += 1
         time.sleep(1)
 
