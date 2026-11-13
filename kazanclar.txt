@@ -125,3 +125,6 @@ LINID 4.hesap @linid_nft GTD
 cacheprotocols 1.hesap @cacheprotocols FCFS
 cacheprotocols 3.hesap @cacheprotocols GTD
 Blobs 1.hesap @getblobs FCFS
+MENDLINGS 2.hesap @mendlingsnft GTD
+MENDLINGS 3.hesap @mendlingsnft GTD
+MENDLINGS 4.hesap @mendlingsnft GTD
