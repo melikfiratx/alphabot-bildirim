@@ -133,3 +133,4 @@ tsbdotfun 3.hesap @tsbdotfun
 tsbdotfun 4.hesap @tsbdotfun
 Woundipets 4.hesap @woundipets (WL)
 Yori 4.hesap @yoricolors FCFS
+Mopes 4.hesap @mopesnft FCFS
