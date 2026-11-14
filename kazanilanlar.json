@@ -49,7 +49,8 @@
   "6af715b9c9c3649821826bd6",
   "6af75ca0d4c012410fd49691",
   "6af7a25cac59961ce364600f",
-  "6af7cedccdb3213ac76b9021"
+  "6af7cedccdb3213ac76b9021",
+  "6af82cc8cdb3213ac76ba4bb"
  ],
  "Chrome": [
   "6a858ed0e7cc82ab6404ab9f",
@@ -192,7 +193,8 @@
   "6af35cd8af7a714fd2f74d40",
   "6af3859369ba3f755934d65f",
   "6af5dd72ca9e8ec88405ff10",
-  "6af715b9c9c3649821826bd6"
+  "6af715b9c9c3649821826bd6",
+  "6af82cc8cdb3213ac76ba4bb"
  ],
  "Firefox": [
   "68b60115dcee3ce7d191e95b",
@@ -263,6 +265,7 @@
   "6af35326af7a714fd2f74a30",
   "6af5a83ada3e6b968b5b792d",
   "6af5dd72ca9e8ec88405ff10",
-  "6af715b9c9c3649821826bd6"
+  "6af715b9c9c3649821826bd6",
+  "6af82cc8cdb3213ac76ba4bb"
  ]
 }

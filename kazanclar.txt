@@ -134,3 +134,6 @@ tsbdotfun 4.hesap @tsbdotfun
 Woundipets 4.hesap @woundipets (WL)
 Yori 4.hesap @yoricolors FCFS
 Mopes 4.hesap @mopesnft FCFS
+Cache Protocol 2.hesap @cacheprotocols GTD
+Cache Protocol 3.hesap @cacheprotocols GTD
+Cache Protocol 4.hesap @cacheprotocols GTD
