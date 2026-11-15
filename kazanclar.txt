@@ -140,3 +140,5 @@ Cache Protocol 4.hesap @cacheprotocols GTD
 Monchies 2.hesap @monchiesnft GTD
 PlayPixelora 2.hesap @playpixelora FCFS
 Yori 4.hesap @yoricolors GTD
+SYNDICATE 2.hesap @syndicaterhc
+Floor Beasts 2.hesap @floorbeasts
