@@ -1,0 +1,48 @@
+name: Kanal okuyucu
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kanal
+  cancel-in-progress: false
+
+jobs:
+  kanal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Telethon kur
+        run: pip install --quiet telethon
+
+      - name: Kanallari oku ve katil
+        run: python kanal.py
+        env:
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+          TG_SESSION: ${{ secrets.TG_SESSION }}
+          JOIN_BOT_TOKEN: ${{ secrets.JOIN_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ALPHABOT_KEY_CHROME: ${{ secrets.ALPHABOT_KEY_CHROME }}
+          ALPHABOT_API_KEY: ${{ secrets.ALPHABOT_API_KEY }}
+          ALPHABOT_KEY_FIREFOX: ${{ secrets.ALPHABOT_KEY_FIREFOX }}
+          ALPHABOT_KEY_BRAVE: ${{ secrets.ALPHABOT_KEY_BRAVE }}
+
+      - name: Durumu kaydet
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add kanal_durum.json 2>/dev/null || exit 0
+          git diff --cached --quiet && exit 0
+          git commit -m "kanal_durum.json guncelle"
+          for i in 1 2 3; do git pull --rebase origin main && git push && break; sleep 5; done
