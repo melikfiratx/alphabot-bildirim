@@ -148,3 +148,6 @@ Hypaww 2.hesap @hypawwx FCFS
 Badyfra 2.hesap @badyfra_ink FCFS
 Badyfra 4.hesap @badyfra_ink FCFS
 Z0NERS 1.hesap @z0nersadventure GTD
+Pax Gothamista 1.hesap @pax_gothamista FCFS
+Pax Gothamista 2.hesap @pax_gothamista FCFS
+Pax Gothamista 2.hesap @pax_gothamista GTD
