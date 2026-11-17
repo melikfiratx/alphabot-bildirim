@@ -147,3 +147,4 @@ RebelKin 4.hesap gtd @therebelkins
 Hypaww 2.hesap @hypawwx FCFS
 Badyfra 2.hesap @badyfra_ink FCFS
 Badyfra 4.hesap @badyfra_ink FCFS
+Z0NERS 1.hesap @z0nersadventure GTD
