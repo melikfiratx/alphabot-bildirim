@@ -151,3 +151,4 @@ Z0NERS 1.hesap @z0nersadventure GTD
 Pax Gothamista 1.hesap @pax_gothamista FCFS
 Pax Gothamista 2.hesap @pax_gothamista FCFS
 Pax Gothamista 2.hesap @pax_gothamista GTD
+Pax Gothamista 2.hesap @pax_gothamista FCFS
