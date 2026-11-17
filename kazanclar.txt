@@ -152,3 +152,5 @@ Pax Gothamista 1.hesap @pax_gothamista FCFS
 Pax Gothamista 2.hesap @pax_gothamista FCFS
 Pax Gothamista 2.hesap @pax_gothamista GTD
 Pax Gothamista 2.hesap @pax_gothamista FCFS
+HyperHaul 1.hesap @hyperhaulio (GTD)
+HyperHaul 4.hesap @hyperhaulio (GTD)
