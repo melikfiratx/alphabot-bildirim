@@ -142,3 +142,5 @@ PlayPixelora 2.hesap @playpixelora FCFS
 Yori 4.hesap @yoricolors GTD
 SYNDICATE 2.hesap @syndicaterhc
 Floor Beasts 2.hesap @floorbeasts
+RebelKin 4.hesap gtd @therebelkins 
+
