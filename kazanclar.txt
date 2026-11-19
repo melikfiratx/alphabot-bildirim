@@ -164,3 +164,5 @@ Zerodroids 4.hesap @zerodroidsio GTD
 LAMORYANT 4.hesap @lamoryant 13 GTD
 codedotkitty 1.hesap @codedotkitty FCFS
 Pax Gothamista and 1.hesap @pax_gothamista 19x GTD and 25x FCFS
+hoodgremlinrh 3.hesap @hoodgremlinrh 5x GTD and 26x FCFS
+Jiro Bots 4.hesap @jirobots (FCFS)
