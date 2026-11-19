@@ -162,3 +162,5 @@ Mortal cats 3.hesap @mortalcats FCFS
 Mortal cats 4.hesap @mortalcats FCFS
 Zerodroids 4.hesap @zerodroidsio GTD
 LAMORYANT 4.hesap @lamoryant 13 GTD
+codedotkitty 1.hesap @codedotkitty FCFS
+Pax Gothamista and 1.hesap @pax_gothamista 19x GTD and 25x FCFS
