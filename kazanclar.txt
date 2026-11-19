@@ -161,3 +161,4 @@ Mortal cats 2.hesap @mortalcats FCFS
 Mortal cats 3.hesap @mortalcats FCFS
 Mortal cats 4.hesap @mortalcats FCFS
 Zerodroids 4.hesap @zerodroidsio GTD
+LAMORYANT 4.hesap @lamoryant 13 GTD
