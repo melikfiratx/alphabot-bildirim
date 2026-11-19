@@ -167,3 +167,4 @@ Pax Gothamista and 1.hesap @pax_gothamista 19x GTD and 25x FCFS
 hoodgremlinrh 3.hesap @hoodgremlinrh 5x GTD and 26x FCFS
 Jiro Bots 4.hesap @jirobots (FCFS)
 Yumi 4.hesap @yumirbh 28x WL
+Yumi 2.hesap @yumirbh (FCFS)
