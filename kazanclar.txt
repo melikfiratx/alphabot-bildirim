@@ -168,3 +168,4 @@ hoodgremlinrh 3.hesap @hoodgremlinrh 5x GTD and 26x FCFS
 Jiro Bots 4.hesap @jirobots (FCFS)
 Yumi 4.hesap @yumirbh 28x WL
 Yumi 2.hesap @yumirbh (FCFS)
+codedotkitty 3.hesap @codedotkitty (GTD)
