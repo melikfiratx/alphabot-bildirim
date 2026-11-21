@@ -169,3 +169,4 @@ Jiro Bots 4.hesap @jirobots (FCFS)
 Yumi 4.hesap @yumirbh 28x WL
 Yumi 2.hesap @yumirbh (FCFS)
 codedotkitty 3.hesap @codedotkitty (GTD)
+GTA V6 Cards 3.hesap @gtav6cards (FCFS)
