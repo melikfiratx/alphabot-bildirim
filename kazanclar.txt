@@ -171,3 +171,7 @@ Yumi 2.hesap @yumirbh (FCFS)
 codedotkitty 3.hesap @codedotkitty (GTD)
 GTA V6 Cards 3.hesap @gtav6cards (FCFS)
 8BITS HOOD 2.hesap @8bitshood GTD
+8BITS HOOD 1.hesap @8bitshood GTD
+8BITS HOOD 2.hesap @8bitshood GTD
+8BITS HOOD 3.hesap @8bitshood GTD
+8BITS HOOD 4.hesap @8bitshood GTD
