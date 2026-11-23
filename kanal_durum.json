@@ -3,7 +3,7 @@
   "forum": true,
   "hash": -2973985801660215867,
   "id": 3134527382,
-  "son_id": 38221
+  "son_id": 38233
  },
  "House": {
   "forum": false,
@@ -13,6 +13,8 @@
  },
  "_gorulen": [
   "heathside-x-gloopix-gtd-4l0tow",
-  "heathside-x-8bits-hood-gtd-e0l3q0"
+  "heathside-x-8bits-hood-gtd-e0l3q0",
+  "heathside-x-chippies-fcfs-tc9wse",
+  "heathside-x-chippies-gtd-kxraa4"
  ]
 }
