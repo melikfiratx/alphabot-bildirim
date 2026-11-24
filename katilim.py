@@ -41,10 +41,23 @@ def tg(method, params):
 
 
 def mesaj_at(metin):
-    # Telegram mesaj siniri 4096 karakter; uzunsa bol
+    # Telegram mesaj siniri 4096 karakter; uzunsa SATIR SONLARINDAN bol
     while metin:
-        parca, metin = metin[:4000], metin[4000:]
-        tg("sendMessage", {"chat_id": OWNER_CHAT_ID, "text": parca, "disable_web_page_preview": "true"})
+        if len(metin) <= 4000:
+            parca, metin = metin, ""
+        else:
+            kes = metin.rfind("\n", 0, 4000)
+            if kes <= 0:
+                kes = 4000
+            parca, metin = metin[:kes], metin[kes:].lstrip("\n")
+        print(parca)  # mesaj Telegram'a gitmese bile logda dursun
+        for deneme in range(4):
+            try:
+                tg("sendMessage", {"chat_id": OWNER_CHAT_ID, "text": parca, "disable_web_page_preview": "true"})
+                break
+            except Exception as e:
+                print(f"Telegram mesaji gonderilemedi ({deneme + 1}/4): {e}")
+                time.sleep(10 * (deneme + 1))
 
 
 # ---------------- Alphabot ----------------
