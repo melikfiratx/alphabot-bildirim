@@ -186,3 +186,4 @@ Chippies 3.hesap @chippiesnfts GTD
 Chippies 4.hesap @chippiesnfts FCFS
 Troopers 3.hesap @gettroopers FCFS
 Troopers 4.hesap @gettroopers FCFS
+Uprimons 4.hesap @uprimonshttps (FCFS)
