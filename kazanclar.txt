@@ -188,3 +188,5 @@ Troopers 3.hesap @gettroopers FCFS
 Troopers 4.hesap @gettroopers FCFS
 Uprimons 4.hesap @uprimonshttps (FCFS)
 Chippies 1.hesap @chippiesnfts FCFS
+PetaliaWorld 1.hesap @petaliaworld FCFS
+PetaliaWorld 3.hesap @petaliaworld FCFS
