@@ -20,7 +20,7 @@ EDGE_KEY = os.environ["ALPHABOT_API_KEY"].strip()
 MAX_WINNERS = int(os.environ.get("MAX_WINNERS", "0") or 0)  # 0 = sinir yok
 HARIC = [w.strip().lower() for w in os.environ.get("HARIC", "").split(",") if w.strip()]
 TR = timezone(timedelta(hours=3))
-BEKLEME_SN = 0.7
+BEKLEME_SN = 0.8
 TEKRAR_YOK = ("Çekiliş bitmiş", "Çekiliş bulunamadı", "API anahtarı geçersiz", "Çekiliş henüz başlamadı")
 
 
@@ -112,14 +112,16 @@ def main():
 
     firo_veri = firo.yukle()
     sonuclar = {r["slug"]: {} for r in secilen}
-    for ad, key in aktif:
-        for r in secilen:
-            s = r["slug"]
+    # En yakinda biten cekilis once: her cekilise 4 hesapla arka arkaya katil
+    secilen.sort(key=lambda r: to_ms(r.get("endDate")) or 0)
+    for r in secilen:
+        s = r["slug"]
+        for ad, key in aktif:
             if firo.atla_mi(firo_veri, ad, r):
                 sonuclar[s][ad] = ("atla", "")
                 continue
             sonuclar[s][ad] = kt.kayit_ol(key, s)
-            time.sleep(BEKLEME_SN)
+            time.sleep(BEKLEME_SN)  # dakikada 100 kayit sinirinin altinda kal
 
     # Ikinci deneme
     tekrar = [(r["slug"], ad, key) for ad, key in aktif for r in secilen
