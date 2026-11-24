@@ -177,3 +177,10 @@ GTA V6 Cards 3.hesap @gtav6cards (FCFS)
 8BITS HOOD 4.hesap @8bitshood GTD
 Troopers 1.hesap @gettroopers (FCFS)
 Troopers 3.hesap @gettroopers (FCFS)
+Chippies 1.hesap @chippiesnfts FCFS
+Chippies 1.hesap @chippiesnfts FCFS
+Chippies 2.hesap @chippiesnfts GTD
+Chippies 2.hesap @chippiesnfts FCFS
+Chippies 3.hesap @chippiesnfts FCFS
+Chippies 3.hesap @chippiesnfts GTD
+Chippies 4.hesap @chippiesnfts FCFS
