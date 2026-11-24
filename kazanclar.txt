@@ -190,3 +190,4 @@ Uprimons 4.hesap @uprimonshttps (FCFS)
 Chippies 1.hesap @chippiesnfts FCFS
 PetaliaWorld 1.hesap @petaliaworld FCFS
 PetaliaWorld 3.hesap @petaliaworld FCFS
+Dooms 1.hesap @doomsrh FCFS
