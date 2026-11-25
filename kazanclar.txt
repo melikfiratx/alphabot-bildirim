@@ -194,3 +194,4 @@ Dooms 1.hesap @doomsrh FCFS
 yoricolors 1.hesap @yoricolors GTD
 Cubits 1.hesap @cubitsrh FCFS
 Cubits 1.hesap @cubitsrh GTD
+Troopers 1.hesap @gettroopers
