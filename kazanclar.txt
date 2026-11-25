@@ -197,3 +197,4 @@ Cubits 1.hesap @cubitsrh GTD
 Troopers 1.hesap @gettroopers
 Troopers 2.hesap @gettroopers gtd
 CUBITS 4.hesap @cubitsrh GTD
+Yori 3.hesap @yoricolors GTD
