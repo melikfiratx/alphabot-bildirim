@@ -192,3 +192,5 @@ PetaliaWorld 1.hesap @petaliaworld FCFS
 PetaliaWorld 3.hesap @petaliaworld FCFS
 Dooms 1.hesap @doomsrh FCFS
 yoricolors 1.hesap @yoricolors GTD
+Cubits 1.hesap @cubitsrh FCFS
+Cubits 1.hesap @cubitsrh GTD
