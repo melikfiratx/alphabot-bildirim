@@ -205,3 +205,5 @@ YORI 2.hesap @yoricolors FCFS
 Spacerz 2.hesap @spacerznft GTD
 YORI 2.hesap @yoricolors (FCFS)
 ZEROFLASH_NFT 4.hesap @zeroflash_nft FCFS
+Riftide 2.hesap @riftidegame
+Riftide 3.hesap @riftidegame
