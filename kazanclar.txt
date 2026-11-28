@@ -207,3 +207,5 @@ YORI 2.hesap @yoricolors (FCFS)
 ZEROFLASH_NFT 4.hesap @zeroflash_nft FCFS
 Riftide 2.hesap @riftidegame
 Riftide 3.hesap @riftidegame
+The noones 1.hesap @thenoonesnft FCFS
+The noones 2.hesap @thenoonesnft FCFS
